@@ -116,12 +116,16 @@ def compute_playlist_stats(playlists: PlaylistMap) -> Dict[str, object]:
     chill = playlists.get("Chill", [])
     mixed = playlists.get("Mixed", [])
 
-    total = len(hype)
+    # FIX 2: Changed denominator to total songs to calculate the actual ratio
+    # and prevented potential division by zero.
+    total = len(all_songs)
     hype_ratio = len(hype) / total if total > 0 else 0.0
 
     avg_energy = 0.0
     if all_songs:
-        total_energy = sum(song.get("energy", 0) for song in hype)
+        # FIX 3: Changed 'hype' to 'all_songs' to calculate average energy 
+        # for the entire library, not just the high-energy songs.
+        total_energy = sum(song.get("energy", 0) for song in all_songs)
         avg_energy = total_energy / len(all_songs)
 
     top_artist, top_count = most_common_artist(all_songs)
@@ -168,7 +172,9 @@ def search_songs(
 
     for song in songs:
         value = str(song.get(field, "")).lower()
-        if value and value in q:
+        # FIX 1: Flipped the 'in' logic so it searches for the query 
+        # inside the song data (e.g., searching "Queen" in "Queen")
+        if value and q in value: 
             filtered.append(song)
 
     return filtered
@@ -184,10 +190,11 @@ def lucky_pick(
     elif mode == "chill":
         songs = playlists.get("Chill", [])
     else:
-        songs = playlists.get("Hype", []) + playlists.get("Chill", [])
+        # FIX 4: Included "Mixed" playlist in the "any" mode 
+        # so all library songs are eligible for a lucky pick.
+        songs = playlists.get("Hype", []) + playlists.get("Chill", []) + playlists.get("Mixed", [])
 
     return random_choice_or_none(songs)
-
 
 def random_choice_or_none(songs: List[Song]) -> Optional[Song]:
     """Return a random song or None."""

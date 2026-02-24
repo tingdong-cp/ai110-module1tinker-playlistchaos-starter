@@ -1,113 +1,58 @@
-# Playlist Chaos
+# Playlist Chaos - Week 1 Tinker Activity
 
-Your AI assistant tried to build a smart playlist generator. The app runs, but some of the behavior is unpredictable. Your task is to explore the app, investigate the code, and use an AI assistant to debug and improve it.
-
-This activity is your first chance to practice AI-assisted debugging on a codebase that is slightly messy, slightly mysterious, and intentionally imperfect.
-
-You do not need to understand everything at once. Approach the app as a curious investigator, work with an AI assistant to explain what you find, and make targeted improvements.
+## Activity Summary
+The core concept of this activity was to practice AI-assisted debugging by navigating a codebase to improve logic and consistency. I explored how data flows between the Streamlit UI and the backend logic, specifically regarding song classification and statistics. I found that students are most likely to struggle with the classification logic, where overlapping energy thresholds and keyword searches can lead to songs being mislabeled. While AI was extremely helpful for explaining complex list comprehensions, it was occasionally misleading by suggesting fixes that ignored specific profile settings, leading to even more "chaos." To guide a student without giving the answer, I would ask them to use `st.write()` to print the song dictionary to the screen to visualize exactly which data fields are being passed to the classification function.
 
 ---
 
-## How the code is organized
+## 1. Investigation: Observed Issues
+As a "curious investigator," I identified the following five bugs/inconsistencies in the original app:
+1. **Search Failure:** Searching for an artist (e.g., "AC/DC") returned no results even when the song was clearly in the list.
+2. **Incorrect Average Energy:** The average energy statistic only reflected the "Hype" playlist rather than the whole library.
+3. **Skewed Hype Ratio:** The ratio was calculated incorrectly, often showing 100% or causing a division-by-zero error.
+4. **Lucky Pick Exclusion:** The "any" mode in the Lucky Pick feature ignored all songs categorized as "Mixed."
+5. **Normalization Side-Effects:** Artist names were being lowercased during normalization, making the display inconsistent with the input.
+
+
+
+---
+
+## 2. Technical Fixes
+I implemented the following four fixes in `playlist_logic.py` to stabilize the app:
+
+### Fix 1: Search Logic Correction
+* **Source:** `search_songs()` function.
+* **Problem:** The code checked `if value in q`, which meant it was checking if the artist name was inside the search query.
+* **Correction:** Flipped the logic to `if q in value` so the app searches for your text inside the artist name.
+
+### Fix 2: Global Average Energy Calculation
+* **Source:** `compute_playlist_stats()` function.
+* **Problem:** `total_energy` was only being calculated for the `hype` list.
+* **Correction:** Changed the loop to iterate through `all_songs` to get a true library average.
+
+### Fix 3: Hype Ratio Denominator
+* **Source:** `compute_playlist_stats()` function.
+* **Problem:** The code used `total = len(hype)`, which incorrectly set the scale for the ratio.
+* **Correction:** Updated `total` to `len(all_songs)` to show how "Hype" songs compare to the entire collection.
+
+### Fix 4: Inclusive Lucky Pick
+* **Source:** `lucky_pick()` function.
+* **Problem:** The "any" mode combined Hype and Chill but left out Mixed songs.
+* **Correction:** Added `playlists.get("Mixed", [])` to the combined list.
+
+---
+
+## 3. How the code is organized
 
 ### `app.py`  
-
-The Streamlit user interface. It handles things like:
-
-- Showing and updating the mood profile  
-- Adding songs  
-- Displaying playlists  
-- Lucky pick  
-- Stats and history
+The Streamlit user interface handling the Mood profile, Song addition, Playlist tabs, and Stats metrics.
 
 ### `playlist_logic.py`  
-
-The logic behind the app, including:
-
-- Normalizing and classifying songs  
-- Building playlists  
-- Merging playlist data  
-- Searching  
-- Computing statistics  
-- Lucky pick mechanics
-
-You will need to look at both files to understand how the app behaves.
+The backend engine handling song normalization, classification logic, and the mathematical computations for stats.
 
 ---
 
-## What you will do
-
-### 1. Explore the app  
-
-Run the app and try things out:
-
-- Add several songs with different titles, artists, genres, and energy levels  
-- Change the mood profile  
-- Use the search box  
-- Try the lucky pick  
-- Inspect the playlist tabs and stats  
-- Look at the history  
-
-As you explore, write down at least five things that feel confusing, inconsistent, or strange. These might be bugs, quirks, or unexpected design decisions.
-
-### 2. Ask AI for help understanding the code  
-
-Pick one issue from your list. Use an AI coding assistant to:
-
-- Explain the relevant code sections  
-- Walk through what the code is supposed to do  
-- Suggest reasons the behavior might not match expectations  
-
-For example:
-
-> "Here is the function that classifies songs. The app is mislabeling some songs. Help me understand what the function is doing and where the logic might need adjustment."
-
-Before making changes, summarize in your own words what you think is happening.
-
-### 3. Fix at least four issues  
-
-Make improvements based on your investigation.
-
-For each fix:
-
-- Identify the source of the issue  
-- Decide whether to accept or adjust the AI assistant's suggestions  
-- Update the code  
-- Add a short comment describing the fix  
-
-Your fixes may involve logic, calculations, search behavior, playlist grouping, lucky pick behavior, or anything else you discover.
-
-### 4. Test your changes  
-
-After each fix, try interacting with the app again:
-
-- Add new songs  
-- Change the profile  
-- Try search and stats  
-- Check whether playlists behave more consistently  
-
-Confirm that the behavior matches your expectations.
-
-### 5. Optional stretch goals  
-
-If you finish early or want an extra challenge, try one of these:
-
-- Improve search behavior  
-- Add a "Recently added" view  
-- Add sorting controls  
-- Improve how Mixed songs are handled  
-- Add new features to the history view  
-- Introduce better error handling for empty playlists  
-- Add a new playlist category of your own design  
-
----
-
-## Tips for success
-
-- You do not need to solve everything. Focus on exploring and learning.  
-- When confused, ask an AI assistant to explain the code or summarize behavior.  
-- Test the app often. Small experiments reveal useful clues.  
-- Treat surprising behavior as something worth investigating.  
-- Stay curious. The unpredictability is intentional and part of the experience.
-
-When you finish, Playlist Chaos will feel more predictable, and you will have taken your first steps into AI-assisted debugging.
+## 4. Tips for Success
+- **Use AI as a Rubber Duck:** I found that asking the AI "What does this specific line of logic do?" was more helpful than asking "Fix this code."
+- **Test Frequently:** After every small change to `playlist_logic.py`, I refreshed the Streamlit app to ensure the UI metrics updated correctly.
+- **Visual Debugging:** Using `st.write(st.session_state)` is a great way to see if your "Add Song" feature is actually working behind the scenes.
