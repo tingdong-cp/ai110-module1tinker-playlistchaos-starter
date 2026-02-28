@@ -13,8 +13,6 @@ As a "curious investigator," I identified the following five bugs/inconsistencie
 4. **Lucky Pick Exclusion:** The "any" mode in the Lucky Pick feature ignored all songs categorized as "Mixed."
 5. **Normalization Side-Effects:** Artist names were being lowercased during normalization, making the display inconsistent with the input.
 
-
-
 ---
 
 ## 2. Technical Fixes
@@ -56,3 +54,36 @@ The backend engine handling song normalization, classification logic, and the ma
 - **Use AI as a Rubber Duck:** I found that asking the AI "What does this specific line of logic do?" was more helpful than asking "Fix this code."
 - **Test Frequently:** After every small change to `playlist_logic.py`, I refreshed the Streamlit app to ensure the UI metrics updated correctly.
 - **Visual Debugging:** Using `st.write(st.session_state)` is a great way to see if your "Add Song" feature is actually working behind the scenes.
+
+---
+
+---
+
+# Week 2 – Game Glitch Investigator
+
+## Bugs Fixed
+
+### Fix 5: Artist Display Casing
+* **Source:** `normalize_song()` function.
+* **Problem:** `normalize_artist()` lowercased the artist name, which was then stored and displayed in the UI. A user who typed "AC/DC" would see "ac/dc" on screen.
+* **Correction:** Captured the original artist string in `artist_raw` before normalization, then added an `artist_display` field to the returned song dict to preserve original casing for the UI while keeping `artist` lowercased for search and comparison logic.
+
+### Fix 6: Lucky Pick Crash on Empty Playlist
+* **Source:** `random_choice_or_none()` function.
+* **Problem:** `random.choice()` raises an `IndexError` when passed an empty list, meaning Lucky Pick would crash if no songs existed in the selected playlist.
+* **Correction:** Added an empty list guard — if `songs` is empty, return `None` instead of calling `random.choice()`.
+
+---
+
+## AI Skepticism Note
+When asked to fix the artist casing bug, AI suggested simply removing `.lower()` from `normalize_artist()`. This appears correct at first glance but breaks `search_songs()`, which depends on artist values being lowercased for case-insensitive matching. The correct fix preserves `.lower()` for comparison while storing a separate `artist_display` field for the UI.
+
+---
+
+## Student Hint
+> "When a user types 'AC/DC' and it shows up differently on screen, where in the code do you think that transformation is happening? Try printing the song dictionary right after normalization and compare it to what the user originally typed."
+
+---
+
+## Tests
+Pytest cases for both fixes are in `test_playlist_logic.py`. All 7 tests pass.

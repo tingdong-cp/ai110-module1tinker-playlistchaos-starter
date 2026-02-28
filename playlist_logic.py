@@ -34,7 +34,8 @@ def normalize_genre(genre: str) -> str:
 def normalize_song(raw: Song) -> Song:
     """Return a normalized song dict with expected keys."""
     title = normalize_title(str(raw.get("title", "")))
-    artist = normalize_artist(str(raw.get("artist", "")))
+    artist_raw = str(raw.get("artist", ""))
+    artist = normalize_artist(artist_raw)
     genre = normalize_genre(str(raw.get("genre", "")))
     energy = raw.get("energy", 0)
 
@@ -51,6 +52,7 @@ def normalize_song(raw: Song) -> Song:
     return {
         "title": title,
         "artist": artist,
+         "artist_display": artist_raw.strip(),
         "genre": genre,
         "energy": energy,
         "tags": tags,
@@ -199,6 +201,8 @@ def lucky_pick(
 def random_choice_or_none(songs: List[Song]) -> Optional[Song]:
     """Return a random song or None."""
     import random
+    if not songs:
+        return None
 
     return random.choice(songs)
 
